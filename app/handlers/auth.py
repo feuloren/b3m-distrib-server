@@ -1,24 +1,16 @@
 #-*- coding: utf-8 -*-
 
-import tornado.web
-from .base import BaseHandler
+from .base import *
 
 class LoginHandler(BaseHandler):
+    @returns_json
     def get(self):
-        # on récupère l'url qui a demandé l'authentification
-        # TODO : regarder le aussi referer si on a pas de next
-
-        url = self.get_argument('next', '/')
-        self.set_cookie('auth_target_url', url)
-        self.render('auth.html')
+        login = self.get_argument('login', None)
+        self.set_logged_user(login)
+        return True
 
 class LogoutHandler(BaseHandler):
-    @tornado.web.authenticated
+    @returns_json
+    @authenticated
     def get(self):
-        method = self.get_secure_cookie('auth')
         self.clear_cookie('user')
-        self.clear_cookie('auth')
-        if method == 'cas':
-            self.redirect(self.cas_logout())
-        else:
-            self.redirect('/')

@@ -64,6 +64,13 @@ else:
         print "Merci d'indiquer l'emplacement du fichier listing en argument"
         exit()
 
+    from app import models
+    print "= Configuration de la base de données ="
+    models.metadata.drop_all(models.engine)
+    print "- Destruction terminée -"
+    models.metadata.create_all(models.engine)
+    print "- Création terminée -\n"
+
     from app import listing_importer
     print "= Import du fichier listing ="
     listing_importer.import_listing(args[0])

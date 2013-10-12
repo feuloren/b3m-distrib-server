@@ -1,7 +1,9 @@
 # -*- coding:utf-8 -*-
 
 import tornado.web
-from ..models import Utilisateur
+import json
+import types
+from datetime import datetime
 
 class BaseHandler(tornado.web.RequestHandler):
     @property
@@ -9,11 +11,7 @@ class BaseHandler(tornado.web.RequestHandler):
         return self.application.db
 
     def get_current_user(self):
-        user_id = self.get_secure_cookie("user")
-        if not user_id:
-            self.current_user = None
-        else:
-            self.current_user = self.db.query(Utilisateur).get(int(user_id))
+        self.current_user = self.get_secure_cookie("user", None)
         return self.current_user
 
     def static_url(self, filename):
@@ -23,42 +21,40 @@ class BaseHandler(tornado.web.RequestHandler):
         
         return self.application.settings["static_url"] + filename
 
-    @property
-    def titre(self):
-        self.require_setting("titre")
+    def set_logged_user(self, login):
+        if login:
+            self.set_secure_cookie('user', str(login))
 
-        if hasattr(self, 'titre_'):
-            return '%s - %s' % (self.titre_, self.settings['titre'])
-        else:
-            return self.settings['titre']
+class ServerException(Exception):
+    pass
 
-    @titre.setter
-    def titre(self, val):
-        self.titre_ = val
+class CompleteEncoder(json.JSONEncoder):
+    """Un encodeur json plus complet qui permet de gérer les générateur et les
+       datetime
+    """
 
-    @property
-    def service_url(self):
-        self.require_setting('service_url')
-        return self.settings['service_url']
+    def default(self, o):
+        if isinstance(o, types.GeneratorType):
+            return list(o)
+        elif isinstance(o, datetime):
+            return o.strftime("%Y-%m-%d %H:%M:%S")
+        return json.JSONEncoder.default(self, o)
 
-    @property
-    def cas_url(self):
-        self.require_setting('cas_url')
-        return self.settings['cas_url']
+def returns_json(func):
+    def wrapper(self, *args, **kwargs):
+        try:
+            result = func(self, *args, **kwargs)
+        except ServerException as e:
+            result = {'erreur' : {'type' : e.__class__.__name__,
+                                  'message' : e.message}}
+        self.write(json.dumps(result, cls=CompleteEncoder))
 
-    def set_logged_user(self, user, method):
-        self.set_secure_cookie('user', str(user.id))
-        self.set_secure_cookie('auth', method)
-        url = self.get_cookie('auth_target_url', '/')
-        self.redirect(url)
+    return wrapper
 
-    # Generate CAS URLs
-    def cas_login(self):
-        return self.cas_url + "/login?service=" + self.service_url + self.reverse_url('cas_auth')
+def authenticated(func):
+    def wrapper(self, *args, **kwargs):
+        if not self.current_user:
+            raise tornado.web.HTTPError(403)
+        return func(self, *args, **kwargs)
 
-    def cas_validate(self, ticket):
-        return self.cas_url + "/serviceValidate?service=" + self.service_url + self.reverse_url('cas_auth') + "&ticket=" + ticket
-
-    def cas_logout(self):
-        return self.cas_url + "/logout?url=" + self.service_url
-
+    return wrapper

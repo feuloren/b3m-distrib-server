@@ -1,18 +1,15 @@
 # -*- coding:utf-8 -*-
 
-from .base import BaseHandler
-from ..models import Offre, Utilisateur
+from .base import *
+from ..models import Tarif, Commande
 
 class RechercheHandler(BaseHandler):
-    titre_ = 'Rechercher un meuble'
+    @returns_json
+    @authenticated
     def get(self):
         term = self.get_argument('q', None)
-        ventes = self.get_argument('accept-ventes', True)
-        dons = self.get_argument('accept-dons', True)
-        prets = self.get_argument('accept-prets', True)
         if term is None:
-            results = None
+            return None
         else:
-            results = self.db.query(Offre).filter(Offre.nom.like('%'+term+'%')).limit(20)
-        self.render("recherche.html", term = term,
-                    results = results)
+            results = self.db.query(Commande).filter(Commande.nom.like('%'+term+'%') | Commande.prenom.like('%'+term+'%') | Commande.mail.like('%'+term+'%')).limit(20)
+            return (commande.info_summary for commande in results)

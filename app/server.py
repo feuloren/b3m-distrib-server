@@ -20,13 +20,11 @@ where_am_i = os.path.dirname(__file__)
 class Application(tornado.web.Application):
     def __init__(self, debug):
         settings = {
-            "titre": u"Adopte un meuble",
             'cookie_secret': app_settings.cookie_secret,
             "template_path": os.path.join(where_am_i, "..", "templates"),
             "static_path": os.path.join(where_am_i, "..", "static"),
             "debug": debug,
             "static_url": app_settings.static_url,
-            "service_url": app_settings.service_url,
             "login_url":"/login",
             }
         tornado.web.Application.__init__(self, routes, **settings)
