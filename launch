@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. activate
+./b3m-distrib-server.py $(zenity --file-selection --title "Veuillez sélectionner le listing json pour cette billetterie")
+
