@@ -6,7 +6,6 @@ from datetime import datetime
 
 class CommandeGetInfos(BaseHandler):
     @returns_json
-    @authenticated
     def get(self, barcode):
         if len(barcode) != 10:
             raise ServerException("Code-barre invalide")
@@ -23,11 +22,12 @@ class CommandeRetirer(BaseHandler):
     @returns_json
     @authenticated
     def get(self, id):
+        login = self.get_argument('login') # pas besoin de vérifier car on utilise @authenticated
         commande = self.db.query(Commande).get(id)
         if commande.date_retrait is None:
-            commande.login_retrait = self.current_user
+            commande.login_retrait = login
             commande.date_retrait = datetime.today()
             self.db.commit()
-            return True
+            return {'success' : True}
         else:
             raise ServerException("Commande déjà retirée")

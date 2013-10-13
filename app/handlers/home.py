@@ -5,6 +5,5 @@ from .base import *
 
 class HomeHandler(BaseHandler):
     @returns_json
-    @authenticated
     def get(self):
-        return 'welcome '+self.current_user
+        return {'welcome '}

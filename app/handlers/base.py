@@ -53,7 +53,7 @@ def returns_json(func):
 
 def authenticated(func):
     def wrapper(self, *args, **kwargs):
-        if not self.current_user:
+        if not self.get_argument('login', None):
             raise tornado.web.HTTPError(403)
         return func(self, *args, **kwargs)
 
