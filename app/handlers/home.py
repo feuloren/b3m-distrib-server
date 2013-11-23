@@ -6,4 +6,4 @@ from .base import *
 class HomeHandler(BaseHandler):
     @returns_json
     def get(self):
-        return {'welcome '}
+        return {'hello':'world'}
