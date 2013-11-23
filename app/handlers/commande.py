@@ -10,8 +10,9 @@ class CommandeGetInfos(BaseHandler):
         if len(barcode) != 10:
             raise ServerException("Code-barre invalide")
 
-        id = barcode[4:]
-        commande = self.db.query(Commande).get(id)
+        commande = self.db.query(Commande).\
+            filter_by(barcode=barcode).\
+            join(Commande.tarif).first()
         if commande is None:
             raise ServerException("Cette commande n'existe pas")
         else:
