@@ -11,4 +11,6 @@ routes = [
     route(r"/commande/retirer/(\d+)", CommandeRetirer),
     route(r"/login", LoginHandler),
     route(r"/logout", LogoutHandler),
+    route(r"/consignes/liste", ConsigneListe),
+    route(r"/consignes/rendre/(\d+)", ConsigneRendre),
 ]

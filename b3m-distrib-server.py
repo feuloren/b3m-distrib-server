@@ -8,7 +8,10 @@ from app.configure import interactive_config, update
 
 parser = optparse.OptionParser()
 parser.add_option('-d', '--debug', dest='debug', default=False, action='store_true', help=u'Lancement en mode debug')
+parser.add_option('-k', '--keep', dest='keep', default=False, action='store_true', help=u"Garder les données déjà présentes")
 parser.add_option('-D', '--do', dest='action', nargs=1, action='store', default=False, help=u'Action à effectuer (pour le déploiement et la maintenance)')
+parser.add_option('-l', '--listing', dest='listing', nargs=1, action='store', default=False, help=u'Emplacement du fichier de listing')
+parser.add_option('-c', '--consignes', dest='consignes', nargs=1, action='store', default=False, help=u'Emplacement du fichier de consignes')
 
 options, args = parser.parse_args()
 
@@ -51,30 +54,37 @@ if options.action:
         print "= Configuration interactive ="
         interactive_config()
 
-    elif action == 'migrate_db':
-        print "= Migration de la base ="
-        import subprocess
-        subprocess.call(['alembic', 'upgrade', 'head'])
+    elif action == 'export-retraits':
+        print "= Liste des commandes retirées ="
+        from app import export
+        for id in export.get_commandes_retirees():
+            print id, ',',
 
     else:
         print "Action invalide"
     
 else:
-    if len(args) == 0:
-        print "Merci d'indiquer l'emplacement du fichier listing en argument"
+    if not(options.listing):
+        print "Merci d'indiquer l'emplacement du fichier listing avec l'option --listing"
         exit()
 
-    from app import models
-    print "= Configuration de la base de données ="
-    models.metadata.drop_all(models.engine)
-    print "- Destruction terminée -"
-    models.metadata.create_all(models.engine)
-    print "- Création terminée -\n"
+    if not(options.keep):
+        from app import models
+        print "= Configuration de la base de données ="
+        models.metadata.drop_all(models.engine)
+        print "- Destruction terminée -"
+        models.metadata.create_all(models.engine)
+        print "- Création terminée -\n"
 
-    from app import listing_importer
-    print "= Import du fichier listing ="
-    listing_importer.import_listing(args[0])
-    print "- import Terminé -\n"
+        from app import listing_importer
+        print "= Import du fichier listing ="
+        listing_importer.import_listing(options.listing)
+        print "- import Terminé -\n"
+
+        if options.consignes:
+            print "= Import du fichier des consignes ="
+            listing_importer.import_consignes(options.consignes)
+            print "- Import terminé -\n"
 
     from app import server
     print "= Lancement du serveur ="

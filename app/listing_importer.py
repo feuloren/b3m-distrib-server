@@ -23,14 +23,14 @@ def import_listing(file_path):
     try:
         fichier = open(file_path, 'r')
     except IOError as e:
-        print "- ERREUR : Impossible d'ouvrir le fichier -"
+        print "- ERREUR : Impossible d'ouvrir le listing des commandes -"
         print e
         return
 
     try:
         data = json.loads(fichier.read())
     except ValueError as e:
-        print "- ERREUR : Impossible de parser le listing -"
+        print "- ERREUR : Impossible de parser le listing des commandes -"
         print e
         return
 
@@ -39,7 +39,7 @@ def import_listing(file_path):
 
     for tarif in data['tarifs']:
         t = Tarif(id = tarif['id'],
-            billetterie = billetterie,
+            billetterie_id = billetterie,
             nom = tarif['nom'],
             code_article = tarif['code_article'],
             nom_article = tarif['nom_article']
@@ -54,7 +54,7 @@ def import_listing(file_path):
 
     for commande in data['commandes']:
         c = Commande(id = commande['id'],
-                     tarif = commande['tarif'],
+                     tarif_id = commande['tarif'],
                      barcode = commande['barcode'],
                      nom = commande['nom'],
                      prenom = commande['prenom'],
@@ -62,6 +62,32 @@ def import_listing(file_path):
                      date_commande = parse_date(commande['date_commande']),
                      date_paiement = parse_date(commande['date_paiement']),
                      date_retrait = parse_date(commande['date_retrait'])
+                     )
+        session.add(c)
+
+    session.commit()
+
+def import_consignes(file_path):
+    # create a Session
+    session = Session()
+    
+    try:
+        fichier = open(file_path, 'r')
+    except IOError as e:
+        print "- ERREUR : Impossible d'ouvrir le listing des consignes -"
+        print e
+        return
+
+    try:
+        data = json.loads(fichier.read())
+    except ValueError as e:
+        print "- ERREUR : Impossible de parser le listing des consignes -"
+        print e
+        return
+
+    for consigne in data['consignes']:
+        c = Consigne(nom = consigne['nom'],
+                     tarif = int(consigne['tarif'])
                      )
         session.add(c)
 

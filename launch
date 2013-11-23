@@ -1,5 +1,5 @@
 #!/bin/bash
 
 . activate
-./b3m-distrib-server.py $(zenity --file-selection --title "Veuillez sélectionner le listing json pour cette billetterie")
+./b3m-distrib-server.py -l $(zenity --file-selection --title "Veuillez sélectionner le listing json pour cette billetterie") #-c $(zenity --file-selection --title "Veuillez sélectionner la liste des consignes")
 
